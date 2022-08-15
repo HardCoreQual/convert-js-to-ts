@@ -2,9 +2,9 @@ import * as ts from "typescript";
 import * as fs from "fs";
 import * as path from 'path';
 import {replaceModuleExportToExportDefaultTransformer, replaceRequireToImportTransformer } from './transformers';
-import {getRequiredArgsByKeys} from './cli';
+import {getArgsByKeys} from './cli';
 
-const {rootDir, entrypoint} = getRequiredArgsByKeys(['rootDir', 'entrypoint']);
+const {rootDir, entrypoint, outputDir} = getArgsByKeys(['rootDir', 'entrypoint'], ['outputDir']);
 const codeDir = path.resolve(process.cwd(), rootDir);
 
 const program = ts.createProgram([path.join(rootDir, entrypoint)], { allowJs: true });
@@ -28,7 +28,7 @@ for (const file of result.transformed) {
   const filePath = file.fileName;
   const filePathRelative = path.relative(process.cwd(), filePath);
 
-  const fullDirName = path.join("output", path.dirname(filePathRelative));
+  const fullDirName = path.join(outputDir ?? '.', path.dirname(filePathRelative));
 
   if (!fs.existsSync(fullDirName)) {
     fs.mkdirSync(fullDirName, { recursive: true });

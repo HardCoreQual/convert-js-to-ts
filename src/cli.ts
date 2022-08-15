@@ -17,16 +17,23 @@ function readArgs() {
   return new Map(argvArr.map(({ key, value }) => [key, value]));
 }
 
-// getRequiredArgs (by keys if exists return only required keys  else  (throw error where in error message to each missingArgs is added -- from start)) and where keys will be generic type
-export function getRequiredArgsByKeys<T extends string>(keys: T[]) {
+export function getArgsByKeys<T extends string, O extends string>(keys: T[], optionalKeys?: O[]): { [K in T]: string } & { [K in O]?: string } {
     const args = readArgs();
     const missingArgs = keys.filter(key => !args.has(key));
     if (missingArgs.length > 0) {
       //  trow error about missing args  where each argument have format --key=value
         throw new Error(`Missing arguments: ${missingArgs.map(key => `--${key}=value`).join(" ")}`);
     }
-    return keys.reduce((acc, key) => {
+
+    const requiredArgs = keys.reduce((acc, key) => {
         acc[key] = args.get(key);
         return acc;
     } , {} as {[key in T]: string});
+
+    const optionalArgs = optionalKeys?.reduce((acc, key) => {
+        acc[key] = args.get(key);
+        return acc;
+    } , {} as {[key in O]: string | undefined});
+
+    return { ...requiredArgs, ...optionalArgs };
 }
