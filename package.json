@@ -1,14 +1,23 @@
 {
-  "name": "require-to-import",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "convert-js-to",
+  "version": "1.0.7",
+  "description": "Convert js project to typescript",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "bin": {
+    "convert-js-to-ts": "build/index.js"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "compile": "tsc",
+    "prepublish": "tsc && sed -i '1s/^/#!\\/usr\\/bin\\/env node \\n /' build/index.js"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "HardCoreQual",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HardCoreQual/convert-js-to-ts"
+  },
+  "license": "MIT",
   "dependencies": {
     "typescript": "^4.7.4"
   },
