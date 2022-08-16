@@ -1,6 +1,6 @@
 {
-  "name": "convert-js-to",
-  "version": "1.0.7",
+  "name": "convert-js-to-ts",
+  "version": "1.0.10",
   "description": "Convert js project to typescript",
   "main": "build/index.js",
   "types": "build/index.d.ts",

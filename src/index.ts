@@ -7,9 +7,15 @@ import {getArgsByKeys} from './cli';
 const {rootDir, entrypoint, outputDir} = getArgsByKeys(['rootDir', 'entrypoint'], ['outputDir']);
 const codeDir = path.relative(process.cwd(), rootDir);
 
-const a = fs.existsSync(path.join(rootDir, entrypoint));
+// TODO: resolve paths
 
-let program = ts.createProgram([path.join(rootDir, entrypoint)], { allowJs: true });
+let entrypointPath = path.resolve(path.join(codeDir, entrypoint));
+
+if(!fs.existsSync(entrypointPath)) {
+  throw new Error(`Entrypoint ${entrypointPath} does not exist`);
+}
+
+let program = ts.createProgram([entrypointPath], { allowJs: true });
 
 let files = program.getSourceFiles();
 
@@ -18,6 +24,10 @@ let projectFiles = files
   .filter(file => {
     return path.resolve(file.fileName).includes(path.resolve(codeDir));
   } );
+
+if(projectFiles.length === 0) {
+  throw new Error(`No project files found in ${codeDir}, by entrypoint ${entrypointPath}`);
+}
 
 projectFiles.forEach(file => {
   const fileContent = fs.readFileSync(file.fileName, 'utf8');
@@ -40,7 +50,13 @@ projectFiles.forEach(file => {
   fs.writeFileSync(outputFileName, newFileContent);
 } );
 
-program = ts.createProgram([path.join(outputDir, entrypoint)], { allowJs: true });
+entrypointPath = path.resolve(path.join(outputDir, entrypoint));
+
+if(!fs.existsSync(entrypointPath)) {
+  throw new Error(`Converted Entrypoint ${entrypointPath} does not exist`);
+}
+
+program = ts.createProgram([entrypointPath], { allowJs: true });
 files = program.getSourceFiles();
 
 projectFiles = files
@@ -48,6 +64,11 @@ projectFiles = files
   .filter(file => {
     return path.resolve(file.fileName).includes(path.resolve(outputDir));
   } );
+
+if(projectFiles.length === 0) {
+  throw new Error(`Not found converted project files found in ${outputDir}, by entrypoint ${entrypointPath}`);
+}
+
 
 const result = ts.transform<ts.SourceFile>(projectFiles, [
   replaceModuleExportToExportDefaultTransformer,
