@@ -40,7 +40,7 @@ projectFiles.forEach(file => {
 
   const relativePath = path.relative(rootDir, file.fileName);
 
-  const outputFileName = path.join(outputDir, relativePath);
+  const outputFileName = path.join(outputDir ?? rootDir, relativePath);
 
   const outputDirName = path.dirname(outputFileName);
   if (!fs.existsSync(outputDirName)) {
@@ -50,7 +50,7 @@ projectFiles.forEach(file => {
   fs.writeFileSync(outputFileName, newFileContent);
 } );
 
-entrypointPath = path.resolve(path.join(outputDir, entrypoint));
+entrypointPath = path.resolve(path.join(outputDir ?? rootDir, entrypoint));
 
 if(!fs.existsSync(entrypointPath)) {
   throw new Error(`Converted Entrypoint ${entrypointPath} does not exist`);
@@ -62,7 +62,7 @@ files = program.getSourceFiles();
 projectFiles = files
   .filter(file => !file.fileName.includes('node_modules'))
   .filter(file => {
-    return path.resolve(file.fileName).includes(path.resolve(outputDir));
+    return path.resolve(file.fileName).includes(path.resolve(outputDir ?? codeDir));
   } );
 
 if(projectFiles.length === 0) {
@@ -77,6 +77,9 @@ const result = ts.transform<ts.SourceFile>(projectFiles, [
 
 const printer = ts.createPrinter();
 
+if (result.transformed.length === 0) {
+  throw new Error(`No transformed files found`);
+}
 
 for (const file of result.transformed) {
   const fileContent = printer.printFile(file);
@@ -88,5 +91,18 @@ for (const file of result.transformed) {
     return line;
   } ).join('\n');
 
-  fs.writeFileSync(file.fileName, newFileContent);
+  // get directoryPath from file.fileName
+  const directoryPath = path.dirname(file.fileName);
+  // get basename from file.fileName
+  const basename = path.basename(file.fileName);
+
+  if (basename.endsWith('.js')) {
+    fs.rmSync(file.fileName);
+  }
+
+  // finalBaseName is basename with replaced extension from '.js' to '.ts'
+  const finalBaseName = basename.replace(/\.js$/, '.ts');
+
+  // write new file to directoryPath with finalBaseName
+  fs.writeFileSync(path.join(directoryPath, finalBaseName), newFileContent);
 }

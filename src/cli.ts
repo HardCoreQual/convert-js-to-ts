@@ -26,7 +26,8 @@ export function getArgsByKeys<T extends string, O extends string>(keys: T[], opt
     }
 
     const requiredArgs = keys.reduce((acc, key) => {
-        acc[key] = args.get(key);
+        // @ts-ignore
+      acc[key] = args.get(key);
         return acc;
     } , {} as {[key in T]: string});
 
@@ -35,5 +36,6 @@ export function getArgsByKeys<T extends string, O extends string>(keys: T[], opt
         return acc;
     } , {} as {[key in O]: string | undefined});
 
-    return { ...requiredArgs, ...optionalArgs };
+    // @ts-ignore
+  return { ...requiredArgs, ...optionalArgs };
 }
