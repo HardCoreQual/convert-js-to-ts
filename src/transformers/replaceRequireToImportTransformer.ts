@@ -1,4 +1,4 @@
-import ts from 'typescript';
+import ts, {NodeFlags} from 'typescript';
 import {getChildren} from './utils';
 
 export const replaceRequireToImportTransformer: ts.TransformerFactory<ts.SourceFile> = context => {
@@ -67,41 +67,53 @@ export const replaceRequireToImportTransformer: ts.TransformerFactory<ts.SourceF
               }
             });
 
-            (objectBinding as ts.Node).forEachChild(child => {
-              // @ts-ignore
-              if (child.name.kind === ts.SyntaxKind.ObjectBindingPattern) {
-                // @ts-ignore
-                child.name = child.propertyName;
-                // @ts-ignore
-                child.propertyName = undefined;
-
-                // TODO: here is a pair to be deconstructed    {name}  = propertyName
-              }
-            });
-
             // implement renaming from objectBinding in next createImport
-            return ts.factory.createImportDeclaration(
+            // @ts-ignore
+            return [ts.factory.createImportDeclaration(
               undefined,
               undefined,
               ts.factory.createImportClause(
                 false,
                 undefined,
                 ts.factory.createNamedImports(getChildren(objectBinding as ts.Node).map(child => {
+                  // @ts-ignore
+                  let propertyName: string | undefined = child.name.kind === ts.SyntaxKind.ObjectBindingPattern ? undefined : child.propertyName.escapedText.toString();
+                  // @ts-ignore
+                  let identifier: string = child.name.kind === ts.SyntaxKind.ObjectBindingPattern ? child.propertyName.escapedText.toString() : child.name.escapedText.toString();
+
                   return ts.factory.createImportSpecifier(
                     false,
                     // @ts-ignore
-                    child.propertyName && ts.factory.createIdentifier(child.propertyName.escapedText),
+                    propertyName && ts.factory.createIdentifier(propertyName),
                     // @ts-ignore
-                    ts.factory.createIdentifier(child.name.escapedText)
+                    ts.factory.createIdentifier(identifier)
                   )
-                  })),
+                })),
               ),
               ts.factory.createStringLiteral(requirePath)
-            );
+            ),
+              ...getChildren(objectBinding as ts.Node)
+                .filter(child => {
 
+                // @ts-ignore
+                return child.propertyName !== undefined && child.name.kind === ts.SyntaxKind.ObjectBindingPattern;
+              })
+                .map(child => {
+                return ts.factory.createVariableDeclarationList(
+                    [ts.factory.createVariableDeclaration(
+                      // @ts-ignore
+                      child.name,
+                      undefined,
+                      undefined,
+                      // @ts-ignore
+                      ts.factory.createIdentifier(child.propertyName.escapedText),
+                    )],
+                  NodeFlags.Const,
+                )
+              }),
+            ];
           }
         }
-
       }
 
       return ts.visitEachChild(node, visitor(deep + 1), context);
