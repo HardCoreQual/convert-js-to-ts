@@ -1,15 +1,19 @@
-## convert JS to TS
+## JavaScript to TypeScript
 
 ### Small tool for converting JS to TS using TypeScript Abstract Syntax Tree (AST)
-
 
 
 ### Usage
 
 ```shell
-$ npx convert-js-to-ts --rootDir=src  --entrypoint=index.ts --outputDir=output
-## or for convert original code
-$ npx convert-js-to-ts --rootDir=src  --entrypoint=index.ts
+$ npx convert-js-to-ts --rootDir=src  --entrypoint=index.js
+```
+
+### Additional possibility
+
+```shell
+// For not rewrite initial files
+$ npx convert-js-to-ts --rootDir=src  --entrypoint=index.js --outputDir=output
 ```
 
 ### Features
