@@ -5,3 +5,12 @@ export const by = (node: ts.Node, type: ts.SyntaxKind, fn: (node: ts.Node) => vo
     fn(child);
   }
 });
+
+
+export const getChildren = (node: ts.Node) => {
+  const children = [] as ts.Node[];
+  ts.forEachChild(node, (child) => {
+    children.push(child);
+  })
+  return children;
+}
