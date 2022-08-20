@@ -77,7 +77,7 @@ export const replaceRequireToImportTransformer: ts.TransformerFactory<ts.SourceF
                 undefined,
                 ts.factory.createNamedImports(getChildren(objectBinding as ts.Node).map(child => {
                   // @ts-ignore
-                  let propertyName: string | undefined = child.name.kind === ts.SyntaxKind.ObjectBindingPattern ? undefined : child.propertyName.escapedText.toString();
+                  let propertyName: string | undefined = child.name.kind === ts.SyntaxKind.ObjectBindingPattern || !child.propertyName ? undefined : child.propertyName.escapedText.toString();
                   // @ts-ignore
                   let identifier: string = child.name.kind === ts.SyntaxKind.ObjectBindingPattern ? child.propertyName.escapedText.toString() : child.name.escapedText.toString();
 

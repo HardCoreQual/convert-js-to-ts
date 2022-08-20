@@ -17,15 +17,13 @@ $ npx convert-js-to-ts --rootDir=src  --entrypoint=index.js --outputDir=output
 ```
 
 ### Features
-* rename `.js` to `.ts`
+* rename `.js` to `.ts`  (save renaming in git for case with change exist files)
 * replace `require()` with `import` (add separate const if require has deep destructuring)
 * replace `module.exports` with `export default`
 
 ### In Progress
-* if convert original code, use `git mv` instead of `fs.rename`
-* bug related to remove empty lines
-* destruct import if file not use entire module
-* after convert to ts, functions call that not receive all available params throw error, because in ts it should declared with `param?: string`
+* improve import & export
+* convert to ts that is ready to compile
 
 ### License
 MIT

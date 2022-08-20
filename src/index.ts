@@ -4,10 +4,14 @@ import * as path from 'path';
 import {replaceModuleExportToExportDefaultTransformer, replaceRequireToImportTransformer } from './transformers';
 import {getArgsByKeys} from './cli';
 
+import util from 'util';
+import child_process from 'child_process';
+
+const exec = util.promisify(child_process.exec);
+
+
 const {rootDir, entrypoint, outputDir} = getArgsByKeys(['rootDir', 'entrypoint'], ['outputDir']);
 const codeDir = path.relative(process.cwd(), rootDir);
-
-// TODO: resolve paths
 
 let entrypointPath = path.resolve(path.join(codeDir, entrypoint));
 
@@ -20,7 +24,7 @@ let program = ts.createProgram([entrypointPath], { allowJs: true });
 let files = program.getSourceFiles();
 
 let projectFiles = files
-  .filter(file => !file.fileName.includes('node_modules'))
+  .filter(file => !file.fileName.includes('node_modules') && file.fileName.endsWith('.js'))
   .filter(file => {
     return path.resolve(file.fileName).includes(path.resolve(codeDir));
   } );
@@ -29,11 +33,15 @@ if(projectFiles.length === 0) {
   throw new Error(`No project files found in ${codeDir}, by entrypoint ${entrypointPath}`);
 }
 
+const emptyLineComment = '//  41waZZbs86CZpAGqn2cYnQreZrGaduFZkKFyZp3TNsj55zsINjmpIPxnohl7ZXCWBOVdYw4w9SV6776D3Ro0WXrmObkuQMKsGjlTOLAI32YAmKIje4X8vIovvkAPA60C';
+
 projectFiles.forEach(file => {
   const fileContent = fs.readFileSync(file.fileName, 'utf8');
-  const newFileContent = fileContent.split('\n').map(line => {
+  const newFileContentArr = fileContent.split('\n');
+
+  const newFileContent = newFileContentArr.map(line => {
     if (line.trim() === '') {
-      return '//  41waZZbs86CZpAGqn2cYnQreZrGaduFZkKFyZp3TNsj55zsINjmpIPxnohl7ZXCWBOVdYw4w9SV6776D3Ro0WXrmObkuQMKsGjlTOLAI32YAmKIje4X8vIovvkAPA60C';
+      return emptyLineComment;
     }
     return line;
   } ).join('\n');
@@ -60,7 +68,7 @@ program = ts.createProgram([entrypointPath], { allowJs: true });
 files = program.getSourceFiles();
 
 projectFiles = files
-  .filter(file => !file.fileName.includes('node_modules'))
+  .filter(file => !file.fileName.includes('node_modules') && file.fileName.endsWith('.js'))
   .filter(file => {
     return path.resolve(file.fileName).includes(path.resolve(outputDir ?? codeDir));
   } );
@@ -81,7 +89,7 @@ if (result.transformed.length === 0) {
   throw new Error(`No transformed files found`);
 }
 
-for (const file of result.transformed) {
+Promise.all(result.transformed.map(async (file) => {
   const fileContent = printer.printFile(file);
 
   const newFileContent = fileContent.split('\n').map(line => {
@@ -91,18 +99,19 @@ for (const file of result.transformed) {
     return line;
   } ).join('\n');
 
-  // get directoryPath from file.fileName
   const directoryPath = path.dirname(file.fileName);
-  // get basename from file.fileName
   const basename = path.basename(file.fileName);
 
-  if (basename.endsWith('.js')) {
-    fs.rmSync(file.fileName);
+  const fullBaseName = path.join(directoryPath, basename);
+
+  fs.writeFileSync(fullBaseName, newFileContent);
+
+  if (fullBaseName.endsWith('.js')) {
+    const newFullFileName = fullBaseName.slice(0, -'js'.length) + 'ts';
+    const gitMvCommand = `git mv ${fullBaseName} ${newFullFileName}`;
+    return exec(gitMvCommand, { cwd: rootDir });
   }
-
-  // finalBaseName is basename with replaced extension from '.js' to '.ts'
-  const finalBaseName = basename.replace(/\.js$/, '.ts');
-
-  // write new file to directoryPath with finalBaseName
-  fs.writeFileSync(path.join(directoryPath, finalBaseName), newFileContent);
-}
+}))
+  .then(() => {
+    console.log( 'Project is convert to TypeScript' );
+})
