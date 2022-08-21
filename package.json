@@ -8,8 +8,8 @@
     "convert-js-to-ts": "build/src/cli.js"
   },
   "scripts": {
-    "compile": "tsc",
-    "prepublish": "tsc && sed -i '1s/^/#!\\/usr\\/bin\\/env node \\n /' build/src/cli.js"
+    "compile": "rm -rf build && tsc",
+    "prepublish": "npm run compile && sed -i '1s/^/#!\\/usr\\/bin\\/env node \\n /' build/src/cli.js"
   },
   "keywords": [],
   "author": "HardCoreQual",
