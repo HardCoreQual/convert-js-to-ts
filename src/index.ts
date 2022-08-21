@@ -11,9 +11,10 @@ export type ConversionParams = {
   projectDir: string;
   outputDir: string;
   entrypoint: string;
+  reconvertTs: boolean;
 }
 
-export function index({projectDir, outputDir, entrypoint}: ConversionParams) {
+export function index({projectDir, outputDir, entrypoint, reconvertTs}: ConversionParams) {
   const codeDir = path.relative(process.cwd(), projectDir);
 
   let entrypointPath = path.resolve(path.join(codeDir, entrypoint));
@@ -26,11 +27,24 @@ export function index({projectDir, outputDir, entrypoint}: ConversionParams) {
 
   let files = program.getSourceFiles();
 
-  let projectFiles = files
-    .filter(file => !file.fileName.includes('node_modules') && file.fileName.endsWith('.js'))
-    .filter(file => {
-      return path.resolve(file.fileName).includes(path.resolve(codeDir));
-    });
+  function filterFiles(files: Readonly<ts.SourceFile[]>, dir: string) {
+    return files
+      .filter(({fileName}) => {
+        if (fileName.includes('node_modules')) {
+          return false;
+        }
+        if (fileName.endsWith('.js')) {
+          return true;
+        }
+
+        return fileName.endsWith('.ts') && reconvertTs;
+      })
+      .filter(file => {
+        return path.resolve(file.fileName).includes(path.resolve(dir));
+      });
+  }
+
+  let projectFiles = filterFiles(files, codeDir);
 
   if (projectFiles.length === 0) {
     throw new Error(`No project files found in ${codeDir}, by entrypoint ${entrypointPath}`);
@@ -51,7 +65,7 @@ export function index({projectDir, outputDir, entrypoint}: ConversionParams) {
 
     const relativePath = path.relative(projectDir, file.fileName);
 
-    const outputFileName = path.join(outputDir ?? projectDir, relativePath);
+    const outputFileName = path.join(outputDir, relativePath);
 
     const outputDirName = path.dirname(outputFileName);
     if (!fs.existsSync(outputDirName)) {
@@ -61,7 +75,7 @@ export function index({projectDir, outputDir, entrypoint}: ConversionParams) {
     fs.writeFileSync(outputFileName, newFileContent);
   });
 
-  entrypointPath = path.resolve(path.join(outputDir ?? projectDir, entrypoint));
+  entrypointPath = path.resolve(path.join(outputDir, entrypoint));
 
   if (!fs.existsSync(entrypointPath)) {
     throw new Error(`Converted Entrypoint ${entrypointPath} does not exist`);
@@ -70,11 +84,7 @@ export function index({projectDir, outputDir, entrypoint}: ConversionParams) {
   program = ts.createProgram([entrypointPath], {allowJs: true});
   files = program.getSourceFiles();
 
-  projectFiles = files
-    .filter(file => !file.fileName.includes('node_modules') && file.fileName.endsWith('.js'))
-    .filter(file => {
-      return path.resolve(file.fileName).includes(path.resolve(outputDir ?? codeDir));
-    });
+  projectFiles = filterFiles(files, outputDir);
 
   if (projectFiles.length === 0) {
     throw new Error(`Not found converted project files found in ${outputDir}, by entrypoint ${entrypointPath}`);

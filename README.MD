@@ -12,8 +12,10 @@ $ npx convert-js-to-ts --projectDir=.  --entrypoint=src/index.js
 ### Additional possibility
 
 ```shell
-// For not rewrite initial files
+// Rewrite initial files
 $ npx convert-js-to-ts --projectDir=.  --entrypoint=src/index.js --outputDir=output
+// Reconvert ts files
+$ npx convert-js-to-ts --projectDir=.  --entrypoint=src/index.js --reconvertTs
 ```
 
 ### Features

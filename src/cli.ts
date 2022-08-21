@@ -11,6 +11,7 @@ program
   .option('-p, --projectDir <string>', 'path/to/project')
   .option('-e, --entrypoint <string>', 'path/to/entrypoint/in/project')
   .option('-o, --outputDir <string>', 'path/to/output/dir', '.')
+  .option('-r, --reconvertTs', 'reconvert exist ts files', false)
   .action((options: ConversionParams) => {
     index(options);
   });
