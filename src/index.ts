@@ -14,8 +14,9 @@ export type ConversionParams = {
   reconvertTs: boolean;
 }
 
-export function index({projectDir, outputDir, entrypoint, reconvertTs}: ConversionParams) {
-  const codeDir = path.relative(process.cwd(), projectDir);
+export function js2ts({projectDir, outputDir: receivedOutputDir, entrypoint, reconvertTs}: ConversionParams) {
+  const outputDir = receivedOutputDir || projectDir;
+  const codeDir = path.resolve(projectDir);
 
   let entrypointPath = path.resolve(path.join(codeDir, entrypoint));
 

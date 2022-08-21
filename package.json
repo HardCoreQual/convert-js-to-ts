@@ -1,15 +1,15 @@
 {
   "name": "convert-js-to-ts",
-  "version": "1.2.6",
+  "version": "1.3.1",
   "description": "Convert JavaScript Project to TypeScript",
-  "main": "build/index.js",
-  "types": "build/index.d.ts",
+  "main": "build/src/index.js",
+  "types": "build/src/index.d.ts",
   "bin": {
-    "convert-js-to-ts": "build/cli.js"
+    "convert-js-to-ts": "build/src/cli.js"
   },
   "scripts": {
     "compile": "tsc",
-    "prepublish": "tsc && sed -i '1s/^/#!\\/usr\\/bin\\/env node \\n /' build/cli.js"
+    "prepublish": "tsc && sed -i '1s/^/#!\\/usr\\/bin\\/env node \\n /' build/src/cli.js"
   },
   "keywords": [],
   "author": "HardCoreQual",
