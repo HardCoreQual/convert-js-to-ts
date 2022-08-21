@@ -109,9 +109,17 @@ Promise.all(result.transformed.map(async (file) => {
   if (fullBaseName.endsWith('.js')) {
     const newFullFileName = fullBaseName.slice(0, -'js'.length) + 'ts';
     const gitMvCommand = `git mv ${fullBaseName} ${newFullFileName}`;
-    return exec(gitMvCommand, { cwd: rootDir });
+    await exec(gitMvCommand, { cwd: rootDir });
+
+    return newFullFileName;
   }
+
+  return fullBaseName;
 }))
+  .then(files => {
+    const eslintCommand = `npx eslint --fix ${files.join(' ')}`;
+    return exec(eslintCommand, { cwd: rootDir }).catch();
+  } )
   .then(() => {
     console.log( 'Project is convert to TypeScript' );
 })
