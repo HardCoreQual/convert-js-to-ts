@@ -10,8 +10,8 @@ import child_process from 'child_process';
 const exec = util.promisify(child_process.exec);
 
 
-const {rootDir, entrypoint, outputDir} = getArgsByKeys(['rootDir', 'entrypoint'], ['outputDir']);
-const codeDir = path.relative(process.cwd(), rootDir);
+const {projectDir, entrypoint, outputDir} = getArgsByKeys(['projectDir', 'entrypoint'], ['outputDir']);
+const codeDir = path.relative(process.cwd(), projectDir);
 
 let entrypointPath = path.resolve(path.join(codeDir, entrypoint));
 
@@ -46,9 +46,9 @@ projectFiles.forEach(file => {
     return line;
   } ).join('\n');
 
-  const relativePath = path.relative(rootDir, file.fileName);
+  const relativePath = path.relative(projectDir, file.fileName);
 
-  const outputFileName = path.join(outputDir ?? rootDir, relativePath);
+  const outputFileName = path.join(outputDir ?? projectDir, relativePath);
 
   const outputDirName = path.dirname(outputFileName);
   if (!fs.existsSync(outputDirName)) {
@@ -58,7 +58,7 @@ projectFiles.forEach(file => {
   fs.writeFileSync(outputFileName, newFileContent);
 } );
 
-entrypointPath = path.resolve(path.join(outputDir ?? rootDir, entrypoint));
+entrypointPath = path.resolve(path.join(outputDir ?? projectDir, entrypoint));
 
 if(!fs.existsSync(entrypointPath)) {
   throw new Error(`Converted Entrypoint ${entrypointPath} does not exist`);
@@ -109,7 +109,7 @@ Promise.all(result.transformed.map(async (file) => {
   if (fullBaseName.endsWith('.js')) {
     const newFullFileName = fullBaseName.slice(0, -'js'.length) + 'ts';
     const gitMvCommand = `git mv ${fullBaseName} ${newFullFileName}`;
-    await exec(gitMvCommand, { cwd: rootDir });
+    await exec(gitMvCommand, { cwd: projectDir });
 
     return newFullFileName;
   }
@@ -118,7 +118,9 @@ Promise.all(result.transformed.map(async (file) => {
 }))
   .then(files => {
     const eslintCommand = `npx eslint --fix ${files.join(' ')}`;
-    return exec(eslintCommand, { cwd: rootDir }).catch();
+    return exec(eslintCommand, { cwd: projectDir }).catch((e) => {
+      console.log( e )
+    });
   } )
   .then(() => {
     console.log( 'Project is convert to TypeScript' );

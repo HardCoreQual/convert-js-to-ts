@@ -1,5 +1,5 @@
-import ts from 'typescript';
-import {by} from './utils';
+import ts, {NodeFlags} from 'typescript';
+import {by, getChildren} from './utils';
 
 export const replaceModuleExportToExportDefaultTransformer = (context: ts.TransformationContext) => (rootNode: ts.SourceFile) => {
   const visitor = (node: ts.Node): ts.Node => {
@@ -7,7 +7,7 @@ export const replaceModuleExportToExportDefaultTransformer = (context: ts.Transf
       let hasModule = false;
       let hasExport = false;
       let hasOther = false;
-      let exportedObject = null;
+      let exportedObject = null as any;
 
       by(node, ts.SyntaxKind.BinaryExpression, (node) => {
         by(node, ts.SyntaxKind.PropertyAccessExpression, (node) => {
@@ -26,17 +26,53 @@ export const replaceModuleExportToExportDefaultTransformer = (context: ts.Transf
 
 
         if (hasModule && hasExport && !hasOther) {
-          by(node, ts.SyntaxKind.ObjectLiteralExpression, (node) => {
-            exportedObject = node;
-          });
-          by(node, ts.SyntaxKind.Identifier, (node) => {
+          by(node, [
+            ts.SyntaxKind.ObjectLiteralExpression,
+            ts.SyntaxKind.Identifier,
+            ts.SyntaxKind.ArrowFunction,
+            ts.SyntaxKind.FunctionExpression,
+            ts.SyntaxKind.ClassExpression,
+          ], (node) => {
             exportedObject = node;
           });
         }
       });
 
       if (hasModule && hasExport && !hasOther && exportedObject) {
-        return ts.factory.createExportDefault(exportedObject);
+        if (exportedObject?.kind !== ts.SyntaxKind.ObjectLiteralExpression) {
+          return ts.factory.createExportDefault(exportedObject);
+        }
+
+        const children = getChildren(exportedObject);
+
+        // split children into two groups:  with identifiers and without
+        const withInitializers = children.filter((child: any) => child.initializer);
+        const withoutInitializers = children.filter((child: any) => !child.initializer);
+
+        const declarations = withInitializers.map((child: any) => {
+          return ts.factory.createVariableStatement(
+            undefined,
+            ts.factory.createVariableDeclarationList([
+              ts.factory.createVariableDeclaration(
+                child.name,
+                undefined,
+                undefined,
+                child.initializer,
+              ),
+            ],
+            NodeFlags.Const,
+          ));
+        }  );
+
+        // @ts-ignore
+        return [...declarations, ts.factory.createExportDeclaration(
+          undefined,
+          undefined,
+          false,
+          // @ts-ignore
+          ts.factory.createObjectBindingPattern(children.map((child: any) => child.name)),
+          undefined
+        )];
       }
     }
 

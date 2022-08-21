@@ -1,7 +1,7 @@
 import ts from 'typescript';
 
-export const by = (node: ts.Node, type: ts.SyntaxKind, fn: (node: ts.Node) => void) => ts.forEachChild(node, (child) => {
-  if (child.kind === type) {
+export const by = (node: ts.Node, type: ts.SyntaxKind | ts.SyntaxKind[], fn: (node: ts.Node) => void) => ts.forEachChild(node, (child) => {
+  if (child.kind === type || type instanceof Array && type.includes(child.kind)) {
     fn(child);
   }
 });

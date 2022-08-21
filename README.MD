@@ -6,23 +6,25 @@
 ### Usage
 
 ```shell
-$ npx convert-js-to-ts --rootDir=src  --entrypoint=index.js
+$ npx convert-js-to-ts --projectDir=.  --entrypoint=src/index.js 
 ```
 
 ### Additional possibility
 
 ```shell
 // For not rewrite initial files
-$ npx convert-js-to-ts --rootDir=src  --entrypoint=index.js --outputDir=output
+$ npx convert-js-to-ts --projectDir=.  --entrypoint=src/index.js --outputDir=output
 ```
 
 ### Features
-* rename `.js` to `.ts`  (save renaming in git for case with change exist files)
-* replace `require()` with `import` (add separate const if require has deep destructuring)
-* replace `module.exports` with `export default`
+* rename `.js` to `.ts`  (using git)
+* replace `require()` with `import`
+* replace `module.exports` with `export {}` or `export default`
+* run eslint for converted files
 
 ### In Progress
-* improve import & export
+* fix bug related to remove comments
+* improve import & export conversion
 * convert to ts that is ready to compile
 
 ### License
