@@ -3,19 +3,25 @@
 ### Small tool for converting JS to TS using TypeScript Abstract Syntax Tree (AST)
 
 
-### Usage
-
+### Basic usage
 ```shell
 $ npx convert-js-to-ts --projectDir=.  --entrypoint=src/index.js 
 ```
 
-### Additional possibility
+### Documentation
+```
+Usage: npx convert-js-to-ts [options]
 
-```shell
-// Rewrite initial files
-$ npx convert-js-to-ts --projectDir=.  --entrypoint=src/index.js --outputDir=output
-// Reconvert ts files
-$ npx convert-js-to-ts --projectDir=.  --entrypoint=src/index.js --reconvertTs
+Convert JavaScript Project to TypeScript
+
+Options:
+  -V, --version                   output the version number
+  -p, --projectDir <string>       path/to/project
+  -e, --entrypoint <string>       path/to/entrypoint/in/project ex: src/index.ts
+  --outputDir <string|undefined>  path/to/output/dir, by default use projectDir
+  --reconvertTs                   reconvert exist ts files (default: false)
+  --eslint                        run eslint for converted files (default: false)
+  -h, --help                      display help for command
 ```
 
 ### Features

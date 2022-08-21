@@ -12,9 +12,10 @@ export type ConversionParams = {
   outputDir: string;
   entrypoint: string;
   reconvertTs: boolean;
+  eslint: boolean;
 }
 
-export function js2ts({projectDir, outputDir: receivedOutputDir, entrypoint, reconvertTs}: ConversionParams) {
+export function js2ts({projectDir, outputDir: receivedOutputDir, entrypoint, reconvertTs, eslint}: ConversionParams) {
   const outputDir = receivedOutputDir || projectDir;
   const codeDir = path.resolve(projectDir);
 
@@ -127,6 +128,10 @@ export function js2ts({projectDir, outputDir: receivedOutputDir, entrypoint, rec
     return fullBaseName;
   }))
     .then(files => {
+      if (!eslint) {
+        return;
+      }
+
       const eslintCommand = `npx eslint --fix ${files.join(' ')}`;
       return exec(eslintCommand, {cwd: projectDir}).catch((e) => {
         console.log(e)
