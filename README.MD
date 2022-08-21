@@ -24,6 +24,9 @@ Options:
   -h, --help                      display help for command
 ```
 
+### Recommendation
+* Configure eslint for typescript and run this cli with --eslint flag
+
 ### Features
 * rename `.js` to `.ts`  (using git)
 * replace `require()` with `import`
