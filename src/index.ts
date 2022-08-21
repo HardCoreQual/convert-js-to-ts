@@ -4,7 +4,7 @@ import path from 'path';
 import process from 'process';
 import fs from 'fs';
 import * as ts from 'typescript';
-import {replaceModuleExportToExportDefaultTransformer, replaceRequireToImportTransformer} from './transformers';
+import {transform} from './transformers';
 
 const exec = util.promisify(child_process.exec);
 export type ConversionParams = {
@@ -81,11 +81,7 @@ export function index({projectDir, outputDir, entrypoint}: ConversionParams) {
   }
 
 
-  const result = ts.transform<ts.SourceFile>(projectFiles, [
-    replaceModuleExportToExportDefaultTransformer,
-    replaceRequireToImportTransformer,
-  ])
-
+  const result = transform(projectFiles);
   const printer = ts.createPrinter();
 
   if (result.transformed.length === 0) {
